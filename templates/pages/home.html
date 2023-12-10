@@ -19,9 +19,9 @@
     </div>
 
     <div class="dashboard">
-      <div class="dashboard-box total-captures">Total Captures: 0</div>
-      <div class="dashboard-box flammable-count">Flammable: 0</div>
-      <div class="dashboard-box non-flammable-count">Non-Flammable: 0</div>
+      <div class="dashboard-box total-captures">전체: 154</div>
+      <div class="dashboard-box flammable-count">가연성: 125</div>
+      <div class="dashboard-box non-flammable-count">불연성: 29</div>
     </div>
   </div>
 
@@ -70,13 +70,15 @@
   }
 
   .dashboard-box {
-    width: 200px;
-    padding: 20px;
-    margin-bottom: 10px;
+    width: 300px; /* 박스의 너비를 늘립니다 */
+    padding: 51px; /* 패딩을 늘려 박스의 크기를 더 크게 만듭니다 */
+    margin-bottom: 40px; /* 박스 간의 간격을 늘립니다 */
     background-color: #f2f2f2;
     border: 1px solid #ddd;
     text-align: center;
+    font-size: 20px; /* 글자 크기를 늘립니다 */
   }
+
 
   .flammable-count {
     background-color: red;
