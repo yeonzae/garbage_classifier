@@ -4,8 +4,133 @@
 {% block title %}Home page{% endblock title %}
 
 {% block content %}
-<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-  <img src="{% static 'images/logo.png' %}" class="img-fluid" alt="DjangoX logo"/>
-  <p class="lead">We create pickles.</p>
+<div class="container">
+  <div class="text-center">
+    <img src="{% static 'images/logo.png' %}" class="img-fluid" alt="DjangoX logo"/>
+    <p class="lead">Garbage Classifier</p>
+  </div>
+
+  <div class="camera-dashboard-container">
+    <div>
+      <video id="video" width="640" height="480" autoplay></video>
+      <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+      <button id="capture-upload" class="capture-upload-btn">Capture</button>
+      <div id="classification-box" class="classification-box"></div>
+    </div>
+
+    <div class="dashboard">
+      <div class="dashboard-box total-captures">Total Captures: 0</div>
+      <div class="dashboard-box flammable-count">Flammable: 0</div>
+      <div class="dashboard-box non-flammable-count">Non-Flammable: 0</div>
+    </div>
+  </div>
+
+  <!-- CSRF Token -->
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 </div>
+
+<style>
+  .camera-dashboard-container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .capture-upload-btn {
+    background-color: pink;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 10px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .classification-box {
+    margin-top: 10px;
+    padding: 10px 20px;
+    width: 100%;
+    text-align: center;
+    color: white;
+    border-radius: 5px;
+  }
+
+  .flammable-box {
+    background-color: red;
+  }
+
+  .non-flammable-box {
+    background-color: green;
+  }
+
+  .dashboard {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-box {
+    width: 200px;
+    padding: 20px;
+    margin-bottom: 10px;
+    background-color: #f2f2f2;
+    border: 1px solid #ddd;
+    text-align: center;
+  }
+
+  .flammable-count {
+    background-color: red;
+    color: white;
+  }
+
+  .non-flammable-count {
+    background-color: green;
+    color: white;
+  }
+</style>
+
+<script>
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const captureUploadButton = document.getElementById('capture-upload');
+  const csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => video.srcObject = stream)
+    .catch(err => console.error("Error accessing the camera: ", err));
+
+  captureUploadButton.addEventListener('click', () => {
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = canvas.toDataURL('image/png');
+
+    const formData = new FormData();
+    formData.append('image', imageData);
+
+    fetch("{% url 'upload_image' %}", {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': csrfToken
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        document.querySelector('.total-captures').innerText = `Total Captures: ${data.total_captures_today}`;
+        document.querySelector('.flammable-count').innerText = `Flammable: ${data.flammable_count}`;
+        document.querySelector('.non-flammable-count').innerText = `Non-Flammable: ${data.non_flammable_count}`;
+
+        const classificationBox = document.getElementById('classification-box');
+        if (data.class === '[0]') {
+            classificationBox.innerText = '가연성';
+            classificationBox.className = 'classification-box flammable-box';
+        } else if (data.class === '[1]') {
+            classificationBox.innerText = '불연성';
+            classificationBox.className = 'classification-box non-flammable-box';
+        }
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  });
+</script>
 {% endblock content %}
